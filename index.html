@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>大A的逆襲：憨慢與阿北的奇幻漂流</title>
+<style>
+    /* 【核心主題與視覺風格】 夢幻背景 */
+    :root {
+        --primary-color: #ff69b4; 
+        --bg-color: #ffffff;
+        --border-color: #ff1493;
+        --dreamy-purple: #e0b0ff; 
+        --dreamy-blue: #a0eaff; 
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, var(--dreamy-blue) 0%, var(--dreamy-purple) 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        color: var(--primary-color);
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        height: 100dvh; 
+        overflow: hidden; 
+        display: flex;
+        user-select: none;
+        position: relative;
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* CRT 螢幕掃描線濾鏡 */
+    #crt-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100dvh;
+        background: linear-gradient(rgba(255, 255, 255, 0) 50%, rgba(255, 105, 180, 0.1) 50%);
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    /* 開場前言故事 */
+    #prologue {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, var(--dreamy-blue) 0%, var(--dreamy-purple) 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        text-align: center;
+    }
+    .prologue-img {
+        max-width: 250px;
+        height: auto;
+        opacity: 0;
+        transition: opacity 1s, filter 1s;
+        margin: 10px;
+    }
+    .glow-green { filter: drop-shadow(0 0 20px #00ff00); }
+    .glow-blue { filter: drop-shadow(0 0 20px #00aaff); }
+    .glow-red { filter: drop-shadow(0 0 20px #ff0000); }
+    #prologue-text {
+        margin-top: 20px;
+        font-size: 1.3rem;
+        min-height: 120px;
+        max-width: 80%;
+        color: #fff; 
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* 戰鬥區 & 側邊欄佈局 */
+    #main-wrapper {
+        display: flex;
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        display: none; /* 初期隱藏，等開場完顯示 */
+    }
+    #game-container {
+        flex: 1;
+        flex-direction: column;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8); 
+        border-right: 3px solid var(--border-color);
+        display: flex;
+    }
+    #battle-area {
+        flex: 5;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 3px solid var(--border-color);
+    }
+    
+    .character { display: flex; flex-direction: column; align-items: center; width: 45%; }
+    .img-container {
+        position: relative; height: 240px; 
+        display: flex; align-items: flex-end; justify-content: center;
+    }
+    .char-img {
+        max-height: 100%; max-width: 100%; object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7)); 
+    }
+    .hero-img { width: 140px; margin: 0 -15px; z-index: 1; }
+    .hero-img:hover { z-index: 2; transform: scale(1.05); transition: 0.2s; }
+
+    /* 血條設計 */
+    .hp-bar-container {
+        width: 100%; height: 22px; background-color: #ffe4e1;
+        border: 2px solid var(--border-color); margin-top: 15px; position: relative;
+    }
+    .hp-bar { height: 100%; background-color: var(--primary-color); transition: width 0.3s ease, background-color 0.3s ease; }
+    .hp-text { position: absolute; width: 100%; text-align: center; top: 0; color: #000; font-size: 15px; line-height: 22px; }
+
+    /* 終端機對話框 */
+    #terminal-area {
+        flex: 4; display: flex; flex-direction: column;
+        background-color: rgba(255, 240, 245, 0.9); padding: 10px;
+        box-shadow: inset 0 5px 10px rgba(0,0,0,0.1);
+    }
+    #controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    button {
+        flex: 1; min-width: calc(25% - 10px); background-color: var(--bg-color);
+        color: var(--primary-color); border: 2px solid var(--border-color);
+        padding: 15px 5px; font-size: 1rem; font-weight: bold; font-family: inherit;
+        cursor: pointer; transition: all 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+    button:active { transform: translateY(1px); box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; background-color: #eee; color: #aaa; }
+
+    /* 文字紀錄 */
+    #log {
+        flex: 1; overflow-y: auto; border: 2px dashed var(--border-color);
+        padding: 10px; font-size: 1.1rem; line-height: 1.6;
+        background-color: rgba(255, 255, 255, 0.7); box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+    .log-hero { color: #008800; }
+    .log-boss { color: #cc0000; }
+    .log-sys { color: #0000cc; }
+    .log-dmg { color: #e74c3c; font-weight: bold; }
+    .log-heal { color: #2ecc71; font-weight: bold; }
+    .log-stun { color: #f39c12; font-weight: bold; }
+
+    /* 招式內容滑軌元件 */
+    #skill-sidebar {
+        width: 300px; background-color: rgba(255, 255, 255, 0.85); padding: 20px;
+        overflow-y: auto; border-left: 3px solid var(--border-color);
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1); flex-shrink: 0; display: none;
+    }
+    #skill-sidebar h3 { color: #8e44ad; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
+    .skill-card { background-color: rgba(255, 240, 245, 0.7); border: 1px solid var(--border-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+    .skill-card h4 { color: var(--primary-color); margin-top: 0; margin-bottom: 8px; font-size: 1.2rem; }
+    .skill-card p { font-size: 0.95rem; line-height: 1.4; color: #555; }
+    .skill-card .cooldown { font-style: italic; color: #888; margin-top: 5px; }
+
+    /* CSS 動畫 */
+    @keyframes glitch {
+        0% { transform: translate(0) skew(0deg); filter: invert(0) hue-rotate(0deg); }
+        20% { transform: translate(-10px, 10px) skew(15deg); filter: invert(1) hue-rotate(90deg) brightness(1.5); }
+        40% { transform: translate(10px, -10px) skew(-15deg); filter: invert(0) hue-rotate(180deg); }
+        60% { transform: translate(-10px, -10px) skew(10deg); filter: invert(1) hue-rotate(270deg) brightness(1.5); }
+        80% { transform: translate(10px, 10px) skew(-10deg); filter: invert(0) hue-rotate(360deg); }
+        100% { transform: translate(0) skew(0deg); filter: invert(0) hue-rotate(0deg); }
+    }
+    @keyframes drop-dead { to { transform: translateY(200px); opacity: 0; filter: grayscale(100%); } }
+    @keyframes dash-hero-desktop { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(120px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
+    @keyframes dash-boss-desktop { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(-120px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
+
+    /* RWD 手機版設定 */
+    @media (max-width: 900px) {
+        #skill-sidebar { display: none !important; }
+        #game-container { border-right: none; }
+    }
+    @media (max-width: 768px) {
+        #battle-area { flex-direction: column-reverse; }
+        .character { width: 90%; margin-bottom: 10px; }
+        .img-container { height: 160px; }
+        .hero-img { width: 100px; margin: 0 -10px; } 
+        #controls { display: grid; grid-template-columns: 1fr 1fr; }
+        button { min-width: unset; padding: 10px 5px; font-size: 0.9rem; }
+        @keyframes dash-hero-mobile { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-80px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
+        @keyframes dash-boss-mobile { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(80px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
+    }
+</style>
+</head>
+<body>
+
+<div id="crt-overlay"></div>
+
+<div id="prologue">
+    <div id="prologue-img-container">
+        <img id="pro-ko" class="prologue-img glow-green" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/1724774632_39142-removebg-preview.png" alt="柯文哲">
+        <img id="pro-han" class="prologue-img glow-blue" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/phpxNc89t-removebg-preview.png" alt="韓國瑜">
+        <img id="pro-boss" class="prologue-img glow-red" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/ADEY0941-removebg-preview.png" alt="賴清德">
+    </div>
+    <div id="prologue-text"></div>
+</div>
+
+<div id="main-wrapper">
+    <div id="game-container">
+        <div id="battle-area">
+            <div class="character" id="hero-side">
+                <div class="img-container" id="hero-imgs">
+                    <img class="char-img hero-img" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/1724774632_39142-removebg-preview.png" alt="柯文哲">
+                    <img class="char-img hero-img" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/phpxNc89t-removebg-preview.png" alt="韓國瑜">
+                </div>
+                <div>阿北 & 國瑜</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar" id="hero-hp-bar" style="width: 100%;"></div>
+                    <div class="hp-text" id="hero-hp-text">150 / 150</div>
+                </div>
+            </div>
+
+            <div class="character" id="boss-side">
+                <div class="img-container" id="boss-imgs">
+                    <img class="char-img" src="https://raw.githubusercontent.com/tungtung103624-png/Xiao-Lai-vs.-Ke.p/main/ADEY0941-removebg-preview.png" alt="賴清德">
+                </div>
+                <div>大魔王 賴清德</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar" id="boss-hp-bar" style="width: 100%;"></div>
+                    <div class="hp-text" id="boss-hp-text">10000 / 10000</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="terminal-area">
+            <div id="controls">
+                <button id="btn-attack" onclick="playerAction('attack')">【我跟你講】<br>(基礎攻擊)</button>
+                <button id="btn-heavy" onclick="playerAction('heavy')">【穿雲箭】<br>(CD: 0)</button>
+                <button id="btn-stun" onclick="playerAction('stun')">【瑪麗亞，莎莎亞】<br>(CD: 0)</button>
+                <button id="btn-heal" onclick="playerAction('heal')">【SOP 急救】<br>(回血)</button>
+            </div>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <div id="skill-sidebar">
+        <h3>招式列表</h3>
+        <div class="skill-card">
+            <h4>【我跟你講】</h4>
+            <p><strong>效果</strong>：對魔王造成基礎傷害 (700 ± 50)。</p>
+            <p class="cooldown">無冷卻時間。</p>
+        </div>
+        <div class="skill-card">
+            <h4>【穿雲箭】</h4>
+            <p><strong>效果</strong>：對魔王造成高額暴擊傷害 (約 1750 ± 200)。</p>
+            <p class="cooldown">冷卻：2 回合。</p>
+        </div>
+        <div class="skill-card">
+            <h4>【瑪麗亞，莎莎亞】</h4>
+            <p><strong>效果</strong>：造成微弱傷害 (50)，並使魔王「暈眩」下一回合無法行動。</p>
+            <p class="cooldown">冷卻：3 回合。</p>
+        </div>
+        <div class="skill-card">
+            <h4>【SOP 急救】</h4>
+            <p><strong>效果</strong>：回復阿北與國瑜 60 點生命值。</p>
+            <p class="cooldown">無冷卻時間。</p>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
