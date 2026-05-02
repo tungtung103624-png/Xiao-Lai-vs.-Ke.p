@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="icon-192.png">
+
 <style>
     /* 【核心主題與視覺風格】 夢幻背景 */
     :root {
@@ -89,7 +90,7 @@
         flex: 1;
         width: 100%;
         height: 100%;
-        display: none; /* 初期隱藏，等開場完顯示 */
+        display: none; 
     }
     #game-container {
         flex: 1;
@@ -169,20 +170,31 @@
     .skill-card p { font-size: 0.95rem; line-height: 1.4; color: #555; }
     .skill-card .cooldown { font-style: italic; color: #888; margin-top: 5px; }
 
-    /* CSS 動畫 */
-    @keyframes glitch {
-        0% { transform: translate(0) skew(0deg); filter: invert(0) hue-rotate(0deg); }
-        20% { transform: translate(-10px, 10px) skew(15deg); filter: invert(1) hue-rotate(90deg) brightness(1.5); }
-        40% { transform: translate(10px, -10px) skew(-15deg); filter: invert(0) hue-rotate(180deg); }
-        60% { transform: translate(-10px, -10px) skew(10deg); filter: invert(1) hue-rotate(270deg) brightness(1.5); }
-        80% { transform: translate(10px, 10px) skew(-10deg); filter: invert(0) hue-rotate(360deg); }
-        100% { transform: translate(0) skew(0deg); filter: invert(0) hue-rotate(0deg); }
+    /* ======== 新增：自訂安裝按鈕樣式 ======== */
+    #install-pwa-btn {
+        display: none; /* 預設隱藏，符合條件才會顯示 */
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10001; /* 確保在最上層 */
+        background-color: #8e44ad;
+        color: white;
+        border: 2px solid white;
+        border-radius: 30px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        cursor: pointer;
+        animation: pulse 2s infinite;
     }
-    @keyframes drop-dead { to { transform: translateY(200px); opacity: 0; filter: grayscale(100%); } }
-    @keyframes dash-hero-desktop { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(120px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
-    @keyframes dash-boss-desktop { 0% { transform: translateX(0) scale(1); } 50% { transform: translateX(-120px) scale(1.1); } 100% { transform: translateX(0) scale(1); } }
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(142,68,173,0.6); }
+        100% { transform: scale(1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    }
 
-    /* RWD 手機版設定 */
+    /* CSS 動畫與 RWD設定 (同原本) */
     @media (max-width: 900px) {
         #skill-sidebar { display: none !important; }
         #game-container { border-right: none; }
@@ -194,12 +206,12 @@
         .hero-img { width: 100px; margin: 0 -10px; } 
         #controls { display: grid; grid-template-columns: 1fr 1fr; }
         button { min-width: unset; padding: 10px 5px; font-size: 0.9rem; }
-        @keyframes dash-hero-mobile { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-80px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
-        @keyframes dash-boss-mobile { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(80px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
     }
 </style>
 </head>
 <body>
+
+<button id="install-pwa-btn">📲 安裝 App 到桌面</button>
 
 <div id="crt-overlay"></div>
 
@@ -278,17 +290,56 @@
 <script src="app.js"></script>
 
 <script>
+    // 1. 註冊 Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js')
                 .then(registration => {
-                    console.log('ServiceWorker 註冊成功，範圍為: ', registration.scope);
-                })
-                .catch(err => {
+                    console.log('ServiceWorker 註冊成功!');
+                }).catch(err => {
                     console.log('ServiceWorker 註冊失敗: ', err);
                 });
         });
     }
+
+    // 2. 處理安裝按鈕顯示邏輯
+    let deferredPrompt;
+    const installBtn = document.getElementById('install-pwa-btn');
+
+    // 監聽 beforeinstallprompt 事件 (代表瀏覽器判定此 PWA 可安裝)
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // 阻止預設的安裝提示 (有時在某些行動裝置上會自己彈出來)
+        e.preventDefault();
+        // 儲存事件，稍後觸發
+        deferredPrompt = e;
+        // 顯示我們自訂的安裝按鈕
+        installBtn.style.display = 'block';
+    });
+
+    // 點擊安裝按鈕
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt !== null) {
+            // 喚起原生的安裝視窗
+            deferredPrompt.prompt();
+            // 等待使用者選擇 (安裝 或 取消)
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('使用者同意安裝');
+            } else {
+                console.log('使用者拒絕安裝');
+            }
+            // 已經觸發過了，清空變數並隱藏按鈕
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+        }
+    });
+
+    // 監聽安裝完成事件 (安裝成功後隱藏按鈕)
+    window.addEventListener('appinstalled', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt = null;
+        console.log('PWA 已成功安裝到桌面');
+    });
 </script>
 </body>
 </html>
