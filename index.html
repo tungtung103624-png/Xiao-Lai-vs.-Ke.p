@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>大A的逆襲：憨慢與阿北的奇幻漂流</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
     /* 【核心主題與視覺風格】 夢幻背景 */
     :root {
@@ -272,5 +276,19 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker 註冊成功，範圍為: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('ServiceWorker 註冊失敗: ', err);
+                });
+        });
+    }
+</script>
 </body>
 </html>
